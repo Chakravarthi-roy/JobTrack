@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job Application Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+
+</head>
+<body>
+
+<div class="masthead">
+  <h1>Job Application Tracker</h1>
+  <div class="tally" id="tally"></div>
+</div>
+<p class="subtitle">Everything here lives only in this browser — nothing leaves your machine.</p>
+
+<div class="entry-card" id="entryCard">
+  <span class="eyebrow" id="formTitle">Log a new application</span>
+  <form id="entryForm" onsubmit="event.preventDefault(); submitEntry();" onkeydown="handleFormKeydown(event)">
+  <div class="entry-grid">
+    <div class="field"><label for="role">Role</label><input id="role" placeholder="e.g. Product Designer"></div>
+    <div class="field"><label for="company">Company</label><input id="company" placeholder="e.g. Acme Co."></div>
+    <div class="field"><label for="applied">Applied</label><input id="applied" type="date"></div>
+    <div class="field"><label for="reply">Reply</label><input id="reply" type="date"></div>
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status">
+        <option>Applied</option>
+        <option>Assessment</option>
+        <option>Interview</option>
+        <option>Rejected</option>
+        <option>Offer</option>
+        <option>No Response</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="reached">Reached</label>
+      <select id="reached">
+        <option>Applied</option>
+        <option>Assessment</option>
+        <option>Interview</option>
+        <option>Offer</option>
+      </select>
+    </div>
+    <div class="field"><label for="source">Source</label><input id="source" placeholder="LinkedIn, Careers..."></div>
+    <div class="field"><label for="location">Location</label><input id="location" placeholder="Remote / Hyderabad / Bengaluru"></div>
+    <div class="field"><label for="jd">JD link</label><input id="jd" placeholder="https://"></div>
+  </div>
+  <div class="field notes-field">
+    <label for="notes">Notes</label>
+    <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, anything worth remembering..." oninput="autoGrowNotes()"></textarea>
+  </div>
+  <div style="display:flex; gap:8px; margin-top:14px">
+    <button id="submitBtn" type="submit">Add entry</button>
+    <button id="clearBtn" class="cancel-btn" type="button" onclick="clearForm()">Clear</button>
+    <button id="cancelBtn" class="cancel-btn" type="button" onclick="cancelEdit()" style="display:none">Cancel</button>
+  </div>
+  </div>
+  </form>
+</div>
+
+<div class="filter-bar">
+  <div class="search-wrap">
+    <input id="searchBox" type="text" placeholder="Search role, company, source, location..." oninput="onSearchInput()" onkeydown="handleSearchKeydown(event)">
+    <button id="searchClearBtn" class="search-clear-btn" type="button" onclick="clearSearch()" title="Clear search" aria-label="Clear search" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <select id="statusFilter" onchange="render()">
+    <option value="">All statuses</option>
+    <option>Applied</option>
+    <option>Assessment</option>
+    <option>Interview</option>
+    <option>Rejected</option>
+    <option>Offer</option>
+    <option>No Response</option>
+  </select>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Role</th><th>Company</th><th id="appliedHeader" class="sortable" onclick="toggleSort()">Applied <span id="sortArrow">↓</span></th><th>Reply</th>
+<th>Status</th><th>Source</th><th>Location</th><th>JD</th><th>Waiting</th><th></th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+<div id="empty" class="empty-state" style="display:none">
+  <div class="big">No applications logged yet</div>
+  <div>Add your first one above to start tracking.</div>
+</div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
