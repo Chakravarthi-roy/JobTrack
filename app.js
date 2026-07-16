@@ -2,6 +2,44 @@ let data=[];
 let editIndex=null;
 let sortDir="desc";
 let expandedNotes=new Set();
+
+function todayISO(){
+ const d=new Date();
+ const offsetMs=d.getTimezoneOffset()*60000;
+ return new Date(d-offsetMs).toISOString().slice(0,10);
+}
+
+function downloadBlob(content, filename, mime){
+ const blob=new Blob([content], {type:mime});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=filename;
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
+}
+
+function exportJSON(){
+ const content=JSON.stringify(data, null, 2);
+ downloadBlob(content, "applications.json", "application/json");
+}
+
+function csvEscape(val){
+ const s=String(val==null?"":val);
+ if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+ return s;
+}
+
+function exportCSV(){
+ const cols=["role","company","applied","reply","status","reached","source","location","jd","notes"];
+ const header=cols.join(",");
+ const rows=data.map(r=>cols.map(c=>csvEscape(r[c])).join(","));
+ const csv=[header, ...rows].join("\r\n");
+ downloadBlob(csv, "applications.csv", "text/csv;charset=utf-8;");
+}
+
 function toggleSort(){
  sortDir = sortDir==="desc" ? "asc" : "desc";
  document.getElementById("sortArrow").textContent = sortDir==="desc" ? "↓" : "↑";
@@ -218,6 +256,7 @@ function clearForm(){
  document.getElementById("entryForm").querySelectorAll("input, textarea").forEach(x=>x.value="");
  document.getElementById("status").selectedIndex=0;
  document.getElementById("reached").selectedIndex=0;
+ document.getElementById("applied").value=todayISO();
  autoGrowNotes();
 }
 function exitEditMode(){
@@ -243,4 +282,5 @@ function del(i){
  render();
  save();
 }
+document.getElementById("applied").value=todayISO();
 load();
