@@ -92,7 +92,7 @@
 
   .entry-grid{
     display:grid;
-    grid-template-columns:1.3fr 1.3fr 1fr 1fr 1fr 1fr 1.1fr 1.3fr 1.3fr;
+    grid-template-columns:1.3fr 1.3fr 1fr 1fr 1fr 1fr 1.2fr 1.4fr;
     gap:10px;
     align-items:end;
   }
@@ -119,6 +119,12 @@
     box-shadow:0 0 0 3px var(--forest-soft);
   }
   .notes-field textarea::placeholder{color:#B7B2A5}
+  .notes-hint{
+    display:block;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:5px;
+  }
 
   .field{
     display:flex;
@@ -323,15 +329,6 @@
   .badge.offer{background:#DFF3E4; color:#2C7A45}
   .badge.noresponse{background:#EFEFEF; color:#8A8A8A}
 
-  .jd-link{
-    color:var(--forest);
-    text-decoration:none;
-    font-weight:600;
-    font-size:13px;
-    border-bottom:1px solid var(--forest-soft);
-  }
-  .jd-link:hover{border-bottom-color:var(--forest)}
-
   .waiting{
     font-family:'DM Mono',monospace;
     font-size:13px;
@@ -385,6 +382,26 @@
     font-family:'DM Mono',monospace;
     font-size:13px;
     color:var(--ink);
+    line-height:1.6;
+  }
+  .notes-text strong{font-weight:700; color:var(--ink)}
+  .notes-text em{font-style:italic}
+  .notes-text .note-h1,
+  .notes-text .note-h2,
+  .notes-text .note-h3{
+    font-family:'DM Sans',sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    display:block;
+  }
+  .notes-text .note-h1{font-size:15px; margin:6px 0 3px}
+  .notes-text .note-h2{font-size:14px; margin:5px 0 3px}
+  .notes-text .note-h3{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--forest);
+    margin:5px 0 2px;
   }
   .notes-row .reached-line{
     font-family:'DM Mono',monospace;

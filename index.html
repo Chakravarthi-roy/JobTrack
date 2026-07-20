@@ -48,11 +48,11 @@
     </div>
     <div class="field"><label for="source">Source</label><input id="source" placeholder="LinkedIn, Careers..."></div>
     <div class="field"><label for="location">Location</label><input id="location" placeholder="Remote / Hyderabad / Bengaluru"></div>
-    <div class="field"><label for="jd">JD link</label><input id="jd" placeholder="https://"></div>
   </div>
   <div class="field notes-field">
     <label for="notes">Notes</label>
-    <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, anything worth remembering..." oninput="autoGrowNotes()"></textarea>
+    <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, paste a JD here..." oninput="autoGrowNotes()" onpaste="handleNotesPaste(event)"></textarea>
+    <span class="notes-hint">Supports # heading, ## subheading, **bold**, *italic* — pasting from a webpage keeps its formatting</span>
   </div>
   <div style="display:flex; gap:8px; margin-top:14px">
     <button id="submitBtn" type="submit">Add entry</button>
@@ -96,7 +96,7 @@
 <thead>
 <tr>
 <th>Role</th><th>Company</th><th id="appliedHeader" class="sortable" onclick="toggleSort()">Applied <span id="sortArrow">↓</span></th><th>Reply</th>
-<th>Status</th><th>Source</th><th>Location</th><th>JD</th><th>Waiting</th><th></th>
+<th>Status</th><th>Source</th><th>Location</th><th>Waiting</th><th></th>
 </tr>
 </thead>
 <tbody id="rows"></tbody>

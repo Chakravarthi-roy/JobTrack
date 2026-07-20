@@ -33,7 +33,7 @@ function csvEscape(val){
 }
 
 function exportCSV(){
- const cols=["role","company","applied","reply","status","reached","source","location","jd","notes"];
+ const cols=["role","company","applied","reply","status","reached","source","location","notes"];
  const header=cols.join(",");
  const rows=data.map(r=>cols.map(c=>csvEscape(r[c])).join(","));
  const csv=[header, ...rows].join("\r\n");
@@ -113,6 +113,76 @@ function highlight(text, term){
  const re=new RegExp(escapeRegExp(escapeHtml(term)), "gi");
  return escaped.replace(re, m => `<mark class="hl">${m}</mark>`);
 }
+
+function inlineMarkdown(escapedText){
+ let out=escapedText.replace(/\*\*([^\*\n]+)\*\*/g, "<strong>$1</strong>");
+ out=out.replace(/\*([^\*\n]+)\*/g, "<em>$1</em>");
+ return out;
+}
+function renderMarkdown(rawText){
+ const escaped=escapeHtml(rawText);
+ const lines=escaped.split("\n");
+ let html="";
+ lines.forEach(line=>{
+ const h3=line.match(/^### (.*)$/);
+ const h2=line.match(/^## (.*)$/);
+ const h1=line.match(/^# (.*)$/);
+ if(h3) html+=`<span class="note-h3">${inlineMarkdown(h3[1])}</span>`;
+ else if(h2) html+=`<span class="note-h2">${inlineMarkdown(h2[1])}</span>`;
+ else if(h1) html+=`<span class="note-h1">${inlineMarkdown(h1[1])}</span>`;
+ else if(line.trim()==="") html+="<br>";
+ else html+=`${inlineMarkdown(line)}<br>`;
+ });
+ return html;
+}
+
+function htmlNodeToMarkdown(node){
+ let md="";
+ node.childNodes.forEach(child=>{
+ if(child.nodeType===Node.TEXT_NODE){
+ md+=child.textContent;
+ }else if(child.nodeType===Node.ELEMENT_NODE){
+ const tag=child.tagName.toLowerCase();
+ const inner=htmlNodeToMarkdown(child);
+ if(tag==="h1") md+=`\n# ${inner.trim()}\n`;
+ else if(tag==="h2") md+=`\n## ${inner.trim()}\n`;
+ else if(["h3","h4","h5","h6"].includes(tag)) md+=`\n### ${inner.trim()}\n`;
+ else if(tag==="b"||tag==="strong") md+=`**${inner}**`;
+ else if(tag==="i"||tag==="em") md+=`*${inner}*`;
+ else if(tag==="br") md+="\n";
+ else if(tag==="li") md+=`- ${inner.trim()}\n`;
+ else if(tag==="p"||tag==="div") md+=`${inner}\n`;
+ else if(tag==="a"){
+ const href=child.getAttribute("href");
+ md+=(href && href!==inner.trim())?`${inner} (${href})`:inner;
+ }else{
+ md+=inner;
+ }
+ }
+ });
+ return md;
+}
+function htmlToMarkdown(htmlString){
+ const container=document.createElement("div");
+ container.innerHTML=htmlString;
+ let md=htmlNodeToMarkdown(container);
+ md=md.replace(/\n{3,}/g, "\n\n").trim();
+ return md;
+}
+function handleNotesPaste(e){
+ const html=e.clipboardData && e.clipboardData.getData("text/html");
+ if(html && html.trim()){
+ e.preventDefault();
+ const md=htmlToMarkdown(html);
+ const el=e.target;
+ const start=el.selectionStart, end=el.selectionEnd;
+ el.value=el.value.slice(0,start)+md+el.value.slice(end);
+ const newPos=start+md.length;
+ el.selectionStart=el.selectionEnd=newPos;
+ autoGrowNotes();
+ }
+}
+
 function matchesFilters(r){
  const term=document.getElementById("searchBox").value.trim().toLowerCase();
  const statusFilter=document.getElementById("statusFilter").value;
@@ -161,7 +231,6 @@ function render(){
 <td><span class="badge ${statusClass(r.status)}">${badgeLabel(r)}</span></td>
 <td>${r.source?highlight(r.source, searchTerm):"—"}</td>
 <td>${r.location?highlight(r.location, searchTerm):"—"}</td>
-<td>${r.jd?'<a class="jd-link" href="'+r.jd+'" target="_blank">Open ↗</a>':'—'}</td>
 <td><span class="waiting${dLong?" long":""}">${d===""?"—":d+"d"}</span></td>
 <td><div class="row-actions">
 <button class="icon-btn notes-btn${r.notes?" has-notes":""}${expandedNotes.has(i)?" active":""}" onclick="toggleNotes(${i})" title="Notes" aria-label="Toggle notes">
@@ -180,8 +249,8 @@ function render(){
  const nr=document.createElement("tr");
  nr.className="notes-row";
  const reachedLine=(r.reached && r.reached!=="Applied")?`<div class="reached-line">Reached: ${r.reached}</div>`:"";
- const noteText=r.notes?`<span class="notes-text">${highlight(r.notes, searchTerm)}</span>`:'<span class="notes-empty">No notes yet — click Edit to add one.</span>';
- nr.innerHTML=`<td colspan="10">${reachedLine}${noteText}</td>`;
+ const noteText=r.notes?`<div class="notes-text">${renderMarkdown(r.notes)}</div>`:'<span class="notes-empty">No notes yet — click Edit to add one.</span>';
+ nr.innerHTML=`<td colspan="9">${reachedLine}${noteText}</td>`;
  tb.appendChild(nr);
  }
  });
@@ -196,14 +265,13 @@ function submitEntry(){
  const reachedEl=document.getElementById("reached");
  const sourceEl=document.getElementById("source");
  const locationEl=document.getElementById("location");
- const jdEl=document.getElementById("jd");
  const notesEl=document.getElementById("notes");
 
  if(!roleEl.value || !companyEl.value) return;
  const entry={
  role:roleEl.value,company:companyEl.value,applied:appliedEl.value,
  reply:replyEl.value,status:statusEl.value,reached:reachedEl.value,
- source:sourceEl.value,location:locationEl.value,jd:jdEl.value,notes:notesEl.value
+ source:sourceEl.value,location:locationEl.value,notes:notesEl.value
  };
 
  if(editIndex!==null){
@@ -232,7 +300,6 @@ function editRow(i){
  document.getElementById("reached").value=r.reached||"Applied";
  document.getElementById("source").value=r.source||"";
  document.getElementById("location").value=r.location||"";
- document.getElementById("jd").value=r.jd||"";
  document.getElementById("notes").value=r.notes||"";
  autoGrowNotes();
 
