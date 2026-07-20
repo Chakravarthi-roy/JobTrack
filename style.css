@@ -391,6 +391,23 @@ mark.hl{
   color:var(--forest);
   margin:5px 0 2px;
 }
+.notes-text ul{
+  margin:4px 0;
+  padding-left:18px;
+}
+.notes-text li{
+  margin:2px 0;
+}
+.notes-text a{
+  color:var(--forest);
+  text-decoration:underline;
+  text-decoration-color:var(--forest-soft);
+  text-underline-offset:2px;
+}
+.notes-text a:hover{
+  color:var(--clay);
+  text-decoration-color:var(--clay-soft);
+}
 .notes-row .reached-line{
   font-family:'DM Mono',monospace;
   font-size:11px;

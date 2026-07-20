@@ -147,7 +147,11 @@ function highlight(text, term) {
 }
 
 function inlineMarkdown(escapedText) {
-  let out = escapedText.replace(/\*\*([^\*\n]+)\*\*/g, "<strong>$1</strong>");
+  let out = escapedText.replace(
+    /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
+  out = out.replace(/\*\*([^\*\n]+)\*\*/g, "<strong>$1</strong>");
   out = out.replace(/\*([^\*\n]+)\*/g, "<em>$1</em>");
   return out;
 }
@@ -156,7 +160,21 @@ function renderMarkdown(rawText) {
   const escaped = escapeHtml(rawText);
   const lines = escaped.split("\n");
   let html = "";
+  let inList = false;
   lines.forEach((line) => {
+    const bullet = line.match(/^[-*] (.*)$/);
+    if (bullet) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      html += `<li>${inlineMarkdown(bullet[1])}</li>`;
+      return;
+    }
+    if (inList) {
+      html += "</ul>";
+      inList = false;
+    }
     const h3 = line.match(/^### (.*)$/);
     const h2 = line.match(/^## (.*)$/);
     const h1 = line.match(/^# (.*)$/);
@@ -166,6 +184,7 @@ function renderMarkdown(rawText) {
     else if (line.trim() === "") html += "<br>";
     else html += `${inlineMarkdown(line)}<br>`;
   });
+  if (inList) html += "</ul>";
   return html;
 }
 
@@ -187,7 +206,7 @@ function htmlNodeToMarkdown(node) {
       else if (tag === "p" || tag === "div") md += `${inner}\n`;
       else if (tag === "a") {
         const href = child.getAttribute("href");
-        md += href && href !== inner.trim() ? `${inner} (${href})` : inner;
+        md += href && /^https?:\/\//.test(href) ? `[${inner}](${href})` : inner;
       } else {
         md += inner;
       }
