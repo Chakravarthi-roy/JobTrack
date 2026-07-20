@@ -119,9 +119,17 @@ function toggleNotes(i) {
 
   if (closingIndex !== null) {
     const openRow = document.querySelector(`tr.notes-row[data-index="${closingIndex}"]`);
-    if (openRow) {
+    const inner = openRow?.querySelector(".notes-inner");
+    if (openRow && inner) {
       notesAnimating = true;
-      openRow.classList.remove("open");
+      // Lock in the current rendered height as an explicit px value first —
+      // you can't transition max-height starting from "none".
+      inner.style.maxHeight = inner.scrollHeight + "px";
+      inner.offsetHeight; // force a reflow so the browser registers that value
+      requestAnimationFrame(() => {
+        openRow.classList.remove("open");
+        inner.style.maxHeight = "0px";
+      });
       setTimeout(() => {
         expandedNoteIndex = openingIndex;
         notesAnimating = false;
@@ -339,9 +347,18 @@ function render() {
         : '<span class="notes-empty">No notes yet — click Edit to add one.</span>';
       nr.innerHTML = `<td colspan="9"><div class="notes-inner">${reachedLine}${noteText}</div></td>`;
       tb.appendChild(nr);
+      const inner = nr.querySelector(".notes-inner");
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           nr.classList.add("open");
+          inner.style.maxHeight = inner.scrollHeight + "px";
+          const onEnd = (e) => {
+            if (e.propertyName === "max-height") {
+              inner.style.maxHeight = "none";
+              inner.removeEventListener("transitionend", onEnd);
+            }
+          };
+          inner.addEventListener("transitionend", onEnd);
         });
       });
     }
