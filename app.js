@@ -143,6 +143,41 @@ function toggleNotes(i) {
   render();
 }
 
+async function copyNotes(i) {
+  const text = data[i]?.notes || "";
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+    } catch (fallbackErr) {
+      console.error("Copy failed:", fallbackErr);
+    }
+    document.body.removeChild(ta);
+  }
+  flashCopied(i);
+}
+
+function flashCopied(i) {
+  const btn = document.querySelector(`.copy-notes-btn[data-index="${i}"]`);
+  if (!btn) return;
+  const label = btn.querySelector(".copy-label");
+  const originalText = label.textContent;
+  btn.classList.add("copied");
+  label.textContent = "Copied";
+  clearTimeout(btn._copyResetTimer);
+  btn._copyResetTimer = setTimeout(() => {
+    btn.classList.remove("copied");
+    label.textContent = originalText;
+  }, 1400);
+}
+
 function updateTally() {
   const el = document.getElementById("tally");
   if (!data.length) {
@@ -345,7 +380,13 @@ function render() {
       const noteText = r.notes
         ? `<div class="notes-text">${renderMarkdown(r.notes)}</div>`
         : '<span class="notes-empty">No notes yet — click Edit to add one.</span>';
-      nr.innerHTML = `<td colspan="9"><div class="notes-inner">${reachedLine}${noteText}</div></td>`;
+      const copyBtn = r.notes
+        ? `<button class="copy-notes-btn" data-index="${i}" onclick="copyNotes(${i})" title="Copy notes" aria-label="Copy notes">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<span class="copy-label">Copy</span>
+</button>`
+        : "";
+      nr.innerHTML = `<td colspan="9"><div class="notes-inner${r.notes ? " has-copy" : ""}">${copyBtn}${reachedLine}${noteText}</div></td>`;
       tb.appendChild(nr);
       const inner = nr.querySelector(".notes-inner");
       requestAnimationFrame(() => {

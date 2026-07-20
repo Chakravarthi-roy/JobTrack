@@ -366,6 +366,7 @@ mark.hl{
   border-bottom:1px solid var(--line);
 }
 .notes-inner{
+  position:relative;
   max-height:0;
   opacity:0;
   overflow:hidden;
@@ -376,6 +377,30 @@ mark.hl{
   opacity:1;
   padding:12px 16px 16px 16px;
 }
+.notes-row.open .notes-inner.has-copy{
+  padding-top:40px;
+}
+.copy-notes-btn{
+  position:absolute;
+  top:10px;
+  right:14px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  padding:4px 10px;
+  background:var(--paper-raised);
+  color:var(--ink-soft);
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+.copy-notes-btn:hover{background:var(--forest-soft); color:var(--forest); border-color:var(--forest-soft)}
+.copy-notes-btn svg{width:12px; height:12px; display:block}
+.copy-notes-btn.copied{background:var(--forest-soft); color:var(--forest); border-color:var(--forest-soft)}
 .notes-row .notes-empty{color:var(--ink-soft); font-style:normal}
 .notes-row .notes-text{
   font-family:'DM Mono',monospace;
