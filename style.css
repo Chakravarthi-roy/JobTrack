@@ -359,11 +359,23 @@ mark.hl{
 
 .notes-row td{
   background:var(--paper);
-  padding:12px 16px 16px 16px;
+  padding:0;
   font-size:13px;
   color:var(--ink);
   white-space:pre-wrap;
   border-bottom:1px solid var(--line);
+}
+.notes-inner{
+  max-height:0;
+  opacity:0;
+  overflow:hidden;
+  padding:0 16px;
+  transition:max-height 0.24s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease, padding 0.24s ease;
+}
+.notes-row.open .notes-inner{
+  max-height:600px;
+  opacity:1;
+  padding:12px 16px 16px 16px;
 }
 .notes-row .notes-empty{color:var(--ink-soft); font-style:normal}
 .notes-row .notes-text{

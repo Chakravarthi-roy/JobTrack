@@ -1,7 +1,9 @@
 let data = [];
 let editIndex = null;
 let sortDir = "desc";
-let expandedNotes = new Set();
+let expandedNoteIndex = null;
+let notesAnimating = false;
+const NOTES_ANIM_MS = 220;
 
 function todayISO() {
   const d = new Date();
@@ -110,8 +112,26 @@ function badgeLabel(r) {
 }
 
 function toggleNotes(i) {
-  if (expandedNotes.has(i)) expandedNotes.delete(i);
-  else expandedNotes.add(i);
+  if (notesAnimating) return;
+
+  const closingIndex = expandedNoteIndex;
+  const openingIndex = expandedNoteIndex === i ? null : i;
+
+  if (closingIndex !== null) {
+    const openRow = document.querySelector(`tr.notes-row[data-index="${closingIndex}"]`);
+    if (openRow) {
+      notesAnimating = true;
+      openRow.classList.remove("open");
+      setTimeout(() => {
+        expandedNoteIndex = openingIndex;
+        notesAnimating = false;
+        render();
+      }, NOTES_ANIM_MS);
+      return;
+    }
+  }
+
+  expandedNoteIndex = openingIndex;
   render();
 }
 
@@ -294,7 +314,7 @@ function render() {
 <td>${r.location ? highlight(r.location, searchTerm) : "—"}</td>
 <td><span class="waiting${dLong ? " long" : ""}">${d === "" ? "—" : d + "d"}</span></td>
 <td><div class="row-actions">
-<button class="icon-btn notes-btn${r.notes ? " has-notes" : ""}${expandedNotes.has(i) ? " active" : ""}" onclick="toggleNotes(${i})" title="Notes" aria-label="Toggle notes">
+<button class="icon-btn notes-btn${r.notes ? " has-notes" : ""}${expandedNoteIndex === i ? " active" : ""}" onclick="toggleNotes(${i})" title="Notes" aria-label="Toggle notes">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
 </button>
 <button class="icon-btn edit-btn" onclick="editRow(${i})" title="Edit" aria-label="Edit entry">
@@ -306,9 +326,10 @@ function render() {
 </div></td>`;
     tb.appendChild(tr);
 
-    if (expandedNotes.has(i)) {
+    if (expandedNoteIndex === i) {
       const nr = document.createElement("tr");
       nr.className = "notes-row";
+      nr.dataset.index = i;
       const reachedLine =
         r.reached && r.reached !== "Applied"
           ? `<div class="reached-line">Reached: ${r.reached}</div>`
@@ -316,8 +337,13 @@ function render() {
       const noteText = r.notes
         ? `<div class="notes-text">${renderMarkdown(r.notes)}</div>`
         : '<span class="notes-empty">No notes yet — click Edit to add one.</span>';
-      nr.innerHTML = `<td colspan="9">${reachedLine}${noteText}</td>`;
+      nr.innerHTML = `<td colspan="9"><div class="notes-inner">${reachedLine}${noteText}</div></td>`;
       tb.appendChild(nr);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          nr.classList.add("open");
+        });
+      });
     }
   });
   updateTally();
@@ -423,12 +449,8 @@ function del(i) {
 
   data.splice(i, 1);
 
-  const shifted = new Set();
-  expandedNotes.forEach((idx) => {
-    if (idx < i) shifted.add(idx);
-    else if (idx > i) shifted.add(idx - 1);
-  });
-  expandedNotes = shifted;
+  if (expandedNoteIndex === i) expandedNoteIndex = null;
+  else if (expandedNoteIndex !== null && expandedNoteIndex > i) expandedNoteIndex--;
 
   render();
   save();
