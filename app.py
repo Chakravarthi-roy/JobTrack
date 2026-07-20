@@ -35,6 +35,28 @@ def save_data(data):
         json.dump(data, f, indent=4)
 
 
+ALLOWED_FIELDS = {
+    "role", "company", "applied", "reply",
+    "status", "reached", "source", "location", "notes",
+}
+
+
+def validate_applications(payload):
+    if not isinstance(payload, list):
+        return "Expected a JSON array of application entries."
+
+    for i, entry in enumerate(payload):
+        if not isinstance(entry, dict):
+            return f"Entry {i} must be an object."
+        for key, value in entry.items():
+            if key not in ALLOWED_FIELDS:
+                return f"Entry {i} has an unexpected field: {key}."
+            if value is not None and not isinstance(value, str):
+                return f"Entry {i} field '{key}' must be a string."
+
+    return None
+
+
 @app.route("/")
 def home():
     return send_file(os.path.join(BASE_DIR, "index.html"))
@@ -57,7 +79,12 @@ def get_applications():
 
 @app.route("/api/applications", methods=["POST"])
 def save_applications():
-    data = request.get_json()
+    data = request.get_json(silent=True)
+
+    error = validate_applications(data)
+    if error:
+        return jsonify({"success": False, "error": error}), 400
+
     save_data(data)
     return jsonify({"success": True})
 
