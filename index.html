@@ -16,7 +16,6 @@
   <h1>Job Application Tracker</h1>
   <div class="tally" id="tally"></div>
 </div>
-<p class="subtitle">Everything here lives only in this browser — nothing leaves your machine.</p>
 
 <div class="entry-card" id="entryCard">
   <span class="eyebrow" id="formTitle">Log a new application</span>
@@ -52,7 +51,6 @@
   <div class="field notes-field">
     <label for="notes">Notes</label>
     <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, paste a JD here..." oninput="autoGrowNotes()" onpaste="handleNotesPaste(event)"></textarea>
-    <span class="notes-hint">Supports # heading, ## subheading, **bold**, *italic* — pasting from a webpage keeps its formatting</span>
   </div>
   <div style="display:flex; gap:8px; margin-top:14px">
     <button id="submitBtn" type="submit">Add entry</button>

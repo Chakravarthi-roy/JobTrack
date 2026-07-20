@@ -38,7 +38,7 @@
     justify-content:space-between;
     flex-wrap:wrap;
     gap:12px;
-    margin-bottom:8px;
+    margin-bottom:32px;
     border-bottom:2px solid var(--ink);
     padding-bottom:18px;
   }
@@ -62,12 +62,6 @@
   .tally strong{
     color:var(--ink);
     font-weight:500;
-  }
-
-  .subtitle{
-    font-size:13px;
-    color:var(--ink-soft);
-    margin:14px 0 32px;
   }
 
   /* ---- entry form ---- */
@@ -119,12 +113,6 @@
     box-shadow:0 0 0 3px var(--forest-soft);
   }
   .notes-field textarea::placeholder{color:#B7B2A5}
-  .notes-hint{
-    display:block;
-    font-size:11px;
-    color:var(--ink-soft);
-    margin-top:5px;
-  }
 
   .field{
     display:flex;
