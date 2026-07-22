@@ -14,17 +14,13 @@ function nowLocalISO() {
 
 function formatAppliedDisplay(value) {
   if (!value) return "—";
-  const hasTime = value.includes("T");
   const d = new Date(value);
   if (isNaN(d)) return value;
-  const datePart = d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
-  if (!hasTime) return datePart;
-  const timePart = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  return `${datePart} · ${timePart}`;
 }
 
 function downloadBlob(content, filename, mime) {
