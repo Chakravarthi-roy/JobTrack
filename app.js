@@ -319,6 +319,13 @@ function handleNotesPaste(e) {
   }
 }
 
+function handleNotesKeydown(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    submitEntry();
+  }
+}
+
 function matchesFilters(r) {
   const term = document.getElementById("searchBox").value.trim().toLowerCase();
   const statusFilter = document.getElementById("statusFilter").value;
@@ -460,7 +467,7 @@ function submitEntry() {
   exitEditMode();
   render();
   save();
-  document.activeElement?.blur();
+  blurEntryForm();
 }
 
 function autoGrowNotes() {
@@ -499,11 +506,19 @@ function cancelEdit() {
   exitEditMode();
 }
 
+function blurEntryForm() {
+  document
+    .getElementById("entryForm")
+    .querySelectorAll("input, select, textarea, button")
+    .forEach((el) => el.blur());
+  window.getSelection()?.removeAllRanges();
+}
+
 function handleFormKeydown(e) {
   if (e.key === "Escape") {
     if (editIndex !== null) cancelEdit();
     else clearForm();
-    document.activeElement?.blur();
+    blurEntryForm();
   }
 }
 

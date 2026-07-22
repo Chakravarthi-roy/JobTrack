@@ -50,7 +50,7 @@
   </div>
   <div class="field notes-field">
     <label for="notes">Notes</label>
-    <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, paste a JD here..." oninput="autoGrowNotes()" onpaste="handleNotesPaste(event)"></textarea>
+    <textarea id="notes" rows="2" placeholder="Interview prep, recruiter name, paste a JD here..." oninput="autoGrowNotes()" onpaste="handleNotesPaste(event)" onkeydown="handleNotesKeydown(event)"></textarea>
   </div>
   <div style="display:flex; gap:8px; margin-top:14px">
     <button id="submitBtn" type="submit">Add entry</button>
