@@ -32,6 +32,36 @@ body{
   line-height:1.5;
 }
 
+.saved-tick{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:100;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#DFF3E4;
+  color:#2C7A45;
+  box-shadow:var(--shadow);
+  opacity:0;
+  transform:translateY(-6px) scale(0.9);
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  pointer-events:none;
+}
+.saved-tick.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+.saved-tick.fade-out{
+  opacity:0;
+  transform:translateY(-4px) scale(0.96);
+  transition:opacity 1.4s ease, transform 1.4s ease;
+}
+.saved-tick svg{width:18px; height:18px; display:block}
+
 .masthead{
   display:flex;
   align-items:baseline;

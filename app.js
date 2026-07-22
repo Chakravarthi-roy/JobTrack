@@ -98,11 +98,44 @@ async function load() {
 }
 
 async function save() {
-  await fetch("/api/applications", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  try {
+    const res = await fetch("/api/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) showSavedTick();
+  } catch (err) {
+    console.error("Save failed:", err);
+  }
+}
+
+let savedTickFadeTimer = null;
+let savedTickRemoveTimer = null;
+
+function showSavedTick() {
+  let el = document.getElementById("savedTick");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "savedTick";
+    el.className = "saved-tick";
+    el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12.5 11 15.5 16 9"/></svg>`;
+    document.body.appendChild(el);
+  }
+
+  clearTimeout(savedTickFadeTimer);
+  clearTimeout(savedTickRemoveTimer);
+  el.classList.remove("fade-out");
+  // Force a reflow so re-triggering mid-fade restarts the animation cleanly.
+  void el.offsetWidth;
+  el.classList.add("show");
+
+  savedTickFadeTimer = setTimeout(() => {
+    el.classList.add("fade-out");
+  }, 3500);
+  savedTickRemoveTimer = setTimeout(() => {
+    el.classList.remove("show", "fade-out");
+  }, 5000);
 }
 
 function days(a) {
@@ -627,3 +660,13 @@ function del(i) {
 }
 document.getElementById("applied").value = nowLocalISO();
 load();
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const active = document.activeElement;
+  const tag = active?.tagName;
+  const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || active?.isContentEditable;
+  if (isTyping) return;
+  e.preventDefault();
+  document.getElementById("searchBox").focus();
+});
