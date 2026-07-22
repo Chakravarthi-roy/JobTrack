@@ -5,10 +5,25 @@ let expandedNoteIndex = null;
 let notesAnimating = false;
 const NOTES_ANIM_MS = 220;
 
-function todayISO() {
+function nowLocalISO() {
   const d = new Date();
   const offsetMs = d.getTimezoneOffset() * 60000;
-  return new Date(d - offsetMs).toISOString().slice(0, 10);
+  return new Date(d - offsetMs).toISOString().slice(0, 16);
+}
+
+function formatAppliedDisplay(value) {
+  if (!value) return "—";
+  const hasTime = value.includes("T");
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  const datePart = d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  if (!hasTime) return datePart;
+  const timePart = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${datePart} · ${timePart}`;
 }
 
 function downloadBlob(content, filename, mime) {
@@ -64,17 +79,18 @@ function onSearchInput() {
   render();
 }
 
-function clearSearch() {
+function clearSearch(keepFocus = true) {
   const box = document.getElementById("searchBox");
   box.value = "";
   document.getElementById("searchClearBtn").style.display = "none";
-  box.focus();
+  if (keepFocus) box.focus();
+  else box.blur();
   render();
 }
 
 function handleSearchKeydown(e) {
   if (e.key === "Escape") {
-    clearSearch();
+    clearSearch(false);
   }
 }
 
@@ -350,7 +366,7 @@ function render() {
     tr.innerHTML = `
 <td class="role">${highlight(r.role, searchTerm)}</td>
 <td class="company">${highlight(r.company, searchTerm)}</td>
-<td class="mono">${r.applied || "—"}</td>
+<td class="mono">${formatAppliedDisplay(r.applied)}</td>
 <td class="mono">${r.reply || "—"}</td>
 <td><span class="badge ${statusClass(r.status)}">${badgeLabel(r)}</span></td>
 <td>${r.source ? highlight(r.source, searchTerm) : "—"}</td>
@@ -441,6 +457,7 @@ function submitEntry() {
   exitEditMode();
   render();
   save();
+  document.activeElement?.blur();
 }
 
 function autoGrowNotes() {
@@ -453,7 +470,11 @@ function editRow(i) {
   const r = data[i];
   document.getElementById("role").value = r.role || "";
   document.getElementById("company").value = r.company || "";
-  document.getElementById("applied").value = r.applied || "";
+  document.getElementById("applied").value = r.applied
+    ? r.applied.includes("T")
+      ? r.applied
+      : `${r.applied}T00:00`
+    : "";
   document.getElementById("reply").value = r.reply || "";
   document.getElementById("status").value = r.status || "Applied";
   document.getElementById("reached").value = r.reached || "Applied";
@@ -479,6 +500,7 @@ function handleFormKeydown(e) {
   if (e.key === "Escape") {
     if (editIndex !== null) cancelEdit();
     else clearForm();
+    document.activeElement?.blur();
   }
 }
 
@@ -489,7 +511,7 @@ function clearForm() {
     .forEach((x) => (x.value = ""));
   document.getElementById("status").selectedIndex = 0;
   document.getElementById("reached").selectedIndex = 0;
-  document.getElementById("applied").value = todayISO();
+  document.getElementById("applied").value = nowLocalISO();
   autoGrowNotes();
 }
 
@@ -513,5 +535,5 @@ function del(i) {
   render();
   save();
 }
-document.getElementById("applied").value = todayISO();
+document.getElementById("applied").value = nowLocalISO();
 load();
