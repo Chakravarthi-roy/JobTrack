@@ -4,6 +4,7 @@ let sortDir = "desc";
 let expandedNoteIndex = null;
 let notesAnimating = false;
 const NOTES_ANIM_MS = 220;
+let openDeletePopover = null;
 
 function nowLocalISO() {
   const d = new Date();
@@ -112,7 +113,8 @@ function days(a) {
   if (!a) return "";
   const d1 = new Date(a),
     d2 = new Date();
-  return Math.floor((d2 - d1) / 86400000);
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round((startOfDay(d2) - startOfDay(d1)) / 86400000);
 }
 
 function statusClass(s) {
@@ -330,6 +332,7 @@ function matchesFilters(r) {
 }
 
 function render() {
+  closeDeletePopover();
   const tb = document.getElementById("rows");
   const empty = document.getElementById("empty");
   tb.innerHTML = "";
@@ -379,7 +382,7 @@ function render() {
 <button class="icon-btn edit-btn" onclick="editRow(${i})" title="Edit" aria-label="Edit entry">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
 </button>
-<button class="icon-btn del-btn" onclick="del(${i})" title="Delete" aria-label="Delete entry">
+<button class="icon-btn del-btn" onclick="requestDelete(${i}, this)" title="Delete" aria-label="Delete entry">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
 </button>
 </div></td>`;
@@ -521,6 +524,82 @@ function exitEditMode() {
   document.getElementById("submitBtn").textContent = "Add entry";
   document.getElementById("cancelBtn").style.display = "none";
   document.getElementById("entryCard").classList.remove("editing");
+}
+
+function requestDelete(i, btn) {
+  if (openDeletePopover) {
+    const wasSameButton = openDeletePopover.index === i;
+    closeDeletePopover();
+    if (wasSameButton) return;
+  }
+  openDeleteConfirm(i, btn);
+}
+
+function openDeleteConfirm(i, btn) {
+  const pop = document.createElement("div");
+  pop.className = "del-popover";
+  pop.innerHTML = `
+<span>Delete?</span>
+<button class="popover-btn popover-yes" title="Confirm delete" aria-label="Confirm delete">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</button>
+<button class="popover-btn popover-no" title="Cancel" aria-label="Cancel">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>`;
+  document.body.appendChild(pop);
+
+  const btnRect = btn.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  const gap = 10;
+  const margin = 8;
+
+  const placeBelow = btnRect.bottom + gap + popRect.height <= window.innerHeight - margin;
+  pop.classList.add(placeBelow ? "beak-top" : "beak-bottom");
+
+  let left = btnRect.left + btnRect.width / 2 - popRect.width / 2;
+  left = Math.max(margin, Math.min(left, window.innerWidth - popRect.width - margin));
+  const top = placeBelow ? btnRect.bottom + gap : btnRect.top - gap - popRect.height;
+  pop.style.left = `${left}px`;
+  pop.style.top = `${top}px`;
+
+  const beakLeft = btnRect.left + btnRect.width / 2 - left;
+  const clampedBeakLeft = Math.max(14, Math.min(beakLeft, popRect.width - 14));
+  pop.style.setProperty("--beak-left", `${clampedBeakLeft}px`);
+
+  requestAnimationFrame(() => pop.classList.add("open"));
+
+  pop.querySelector(".popover-yes").onclick = (e) => {
+    e.stopPropagation();
+    closeDeletePopover();
+    del(i);
+  };
+  pop.querySelector(".popover-no").onclick = (e) => {
+    e.stopPropagation();
+    closeDeletePopover();
+  };
+
+  openDeletePopover = { el: pop, index: i, btn };
+  document.addEventListener("mousedown", handleOutsideDeleteClick);
+  document.addEventListener("keydown", handleDeleteEscape);
+}
+
+function closeDeletePopover() {
+  if (!openDeletePopover) return;
+  openDeletePopover.el.remove();
+  openDeletePopover = null;
+  document.removeEventListener("mousedown", handleOutsideDeleteClick);
+  document.removeEventListener("keydown", handleDeleteEscape);
+}
+
+function handleOutsideDeleteClick(e) {
+  if (!openDeletePopover) return;
+  if (openDeletePopover.el.contains(e.target)) return;
+  if (openDeletePopover.btn.contains(e.target)) return;
+  closeDeletePopover();
+}
+
+function handleDeleteEscape(e) {
+  if (e.key === "Escape") closeDeletePopover();
 }
 
 function del(i) {
